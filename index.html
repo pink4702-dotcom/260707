@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>귀여운 곰돌이 타이머 🐻</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Nanum Gothic', sans-serif;
+            background-color: #FFF9E6; /* 유아용 따뜻한 노란색 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* 곰돌이 얼굴 컨테이너 (글자 삭제 후 비율 조정) */
+        .bear-container {
+            background-color: #FFE699; /* 곰돌이 얼굴색 */
+            padding: 80px 30px 40px 30px; /* 얼굴 중앙 배치를 위해 위쪽 여백 조정 */
+            border-radius: 50% 50% 45% 45% / 50% 50% 50% 50%; /* 둥글둥글한 얼굴 모양 */
+            box-shadow: 0 12px 25px rgba(220, 160, 40, 0.3);
+            text-align: center;
+            width: 340px;
+            position: relative;
+            border: 6px solid #D69E2E;
+        }
+
+        /* 곰돌이 귀 */
+        .bear-ear-left, .bear-ear-right {
+            position: absolute;
+            top: -25px;
+            width: 90px;
+            height: 90px;
+            background-color: #FFE699;
+            border: 6px solid #D69E2E;
+            border-radius: 50%;
+            z-index: -1;
+        }
+        .bear-ear-left { left: 10px; }
+        .bear-ear-right { right: 10px; }
+
+        .bear-ear-left::after, .bear-ear-right::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 50px;
+            height: 50px;
+            background-color: #FFB6C1;
+            border-radius: 50%;
+        }
+
+        /* 곰돌이 눈 */
+        .bear-eye-left, .bear-eye-right {
+            position: absolute;
+            top: 60px;
+            width: 16px;
+            height: 22px;
+            background-color: #4A3728;
+            border-radius: 50%;
+        }
+        .bear-eye-left { left: 105px; }
+        .bear-eye-right { right: 105px; }
+
+        /* 곰돌이 코/입 주변 흰 부분 */
+        .bear-snout {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 65px;
+            height: 50px;
+            background-color: #FFF;
+            border-radius: 50%;
+            z-index: 0;
+        }
+        .bear-nose {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 14px;
+            background-color: #4A3728;
+            border-radius: 40% 40% 50% 50%;
+        }
+
+        /* 입력창 스타일 */
+        .inputs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 50px; /* 눈코입 아래로 적절히 띄움 */
+            z-index: 2;
+            position: relative;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input {
+            width: 55px;
+            padding: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            border: 3px solid #D69E2E;
+            border-radius: 12px;
+            background-color: #FFF;
+            color: #654321;
+            outline: none;
+        }
+
+        .input-group span {
+            font-size: 13px;
+            color: #654321;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        /* 타이머 시계 글씨 */
+        .display {
+            font-size: 54px;
+            font-weight: bold;
+            color: #654321;
+            margin: 25px 0;
+            font-variant-numeric: tabular-nums;
+            z-index: 2;
+            position: relative;
+            text-shadow: 2px 2px 0px #FFF;
+        }
+
+        /* [기능] 3. 10초 남았을 때 빨간색으로 깜빡이는 효과 */
+        @keyframes blink-red {
+            0% { color: #654321; text-shadow: 2px 2px 0px #FFF; }
+            50% { color: #FF3333; text-shadow: 0 0 10px rgba(255,0,0,0.5); transform: scale(1.1); }
+            100% { color: #654321; text-shadow: 2px 2px 0px #FFF; }
+        }
+
+        .urgent {
+            animation: blink-red 0.5s infinite;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* [디자인] 3. 시작 버튼 디자인 */
+        button {
+            padding: 12px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 3px solid #654321;
+            border-radius: 50px; 
+            cursor: pointer;
+            box-shadow: 0 4px 0px #654321;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px #654321;
+        }
+
+        #startBtn { background-color: #FFB6C1; color: #654321; } 
+        #pauseBtn { background-color: #BFFF80; color: #654321; display: none; }
+        #resetBtn { background-color: #E2E8F0; color: #654321; }
+    </style>
+</head>
+<body>
+
+    <div class="bear-container">
+        <!-- 곰돌이 얼굴 요소 (글자 삭제됨) -->
+        <div class="bear-ear-left"></div>
+        <div class="bear-ear-right"></div>
+        <div class="bear-eye-left"></div>
+        <div class="bear-eye-right"></div>
+        <div class="bear-snout">
+            <div class="bear-nose"></div>
+        </div>
+        
+        <!-- 시간 입력 칸 -->
+        <div class="inputs" id="inputSection">
+            <div class="input-group">
+                <input type="number" id="minutes" min="0" max="99" value="0">
+                <span>분</span>
+            </div>
+            <div class="input-group">
+                <input type="number" id="seconds" min="0" max="59" value="0">
+                <span>초</span>
+            </div>
+        </div>
+
+        <!-- 시간 표시 -->
+        <div class="display" id="timerDisplay">00:00</div>
+
+        <!-- 제어 버튼 -->
+        <div class="buttons">
+            <button id="startBtn">출발~! 🎈</button>
+            <button id="pauseBtn">잠깐! ⏸️</button>
+            <button id="resetBtn">다시 🔄</button>
+        </div>
+    </div>
+
+    <!-- 브라우저 정책에 맞게 오디오 소스를 확실하게 로드하는 코드 추가 -->
+    <audio id="warningSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
+    <audio id="alarmSound" src="https://assets.mixkit.co/active_storage/sfx/911/911-84.wav" preload="auto"></audio>
+
+    <script>
+        let timerInterval;
+        let totalSeconds = 0;
+        let isPaused = false;
+        let playedWarning = false;
+
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+        
+        const display = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const inputSection = document.getElementById('inputSection');
+
+        const warningSound = document.getElementById('warningSound');
+        const alarmSound = document.getElementById('alarmSound');
+
+        // [기능] 소리 재생 문제 해결을 위한 오디오 락 해제 함수
+        function initAudio() {
+            warningSound.play().then(() => { warningSound.pause(); warningSound.currentTime = 0; }).catch(e => console.log("오디오 락 해제 실패:", e));
+            alarmSound.play().then(() => { alarmSound.pause(); alarmSound.currentTime = 0; }).catch(e => console.log("오디오 락 해제 실패:", e));
+        }
+
+        function updateDisplay(mins, secs) {
+            const m = String(mins).padStart(2, '0');
+            const s = String(secs).padStart(2, '0');
+            display.textContent = `${m}:${s}`;
+        }
+
+        function startTimer() {
+            // 사용자가 버튼을 클릭하는 순간 오디오 락 해제
+            initAudio();
+
+            if (!isPaused) {
+                const mins = parseInt(minutesInput.value) || 0;
+                const secs = parseInt(secondsInput.value) || 0;
+
+                totalSeconds = (mins * 60) + secs;
+
+                if (totalSeconds <= 0) {
+                    alert("시간을 입력해 주세요! 🐻");
+                    return;
+                }
+                playedWarning = false;
+            }
+
+            inputSection.style.visibility = 'hidden'; 
+            startBtn.style.display = 'none';
+            pauseBtn.style.display = 'inline-block';
+            isPaused = false;
+
+            timerInterval = setInterval(() => {
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    updateDisplay(0, 0);
+                    display.classList.remove('urgent');
+                    
+                    // [기능 2] 경보음 재생
+                    alarmSound.play().catch(e => console.log("재생 실패:", e));
+                    
+                    setTimeout(() => {
+                        alert("🎉 시간이 다 됐어요! 야호! 🎉");
+                        resetTimer();
+                    }, 100);
+                    return;
+                }
+
+                totalSeconds--;
+
+                const m = Math.floor(totalSeconds / 60);
+                const s = totalSeconds % 60;
+
+                updateDisplay(m, s);
+
+                // [기능 1 & 3] 10초 이하 남았을 때
+                if (totalSeconds <= 10) {
+                    display.classList.add('urgent'); // [기능 3] 깜빡임
+                    
+                    if (totalSeconds === 10 && !playedWarning) {
+                        // [기능 1] 예비알림
+                        warningSound.play().catch(e => console.log("재생 실패:", e));
+                        playedWarning = true;
+                    }
+                } else {
+                    display.classList.remove('urgent');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isPaused = true;
+            startBtn.textContent = '다시 출발! ▶️';
+            startBtn.style.display = 'inline-block';
+            pauseBtn.style.display = 'none';
+            display.classList.remove('urgent');
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            totalSeconds = 0;
+            isPaused = false;
+            playedWarning = false;
+            
+            updateDisplay(0, 0);
+            display.classList.remove('urgent');
+            
+            inputSection.style.visibility = 'visible';
+            startBtn.textContent = '출발~! 🎈';
+            startBtn.style.display = 'inline-block';
+            pauseBtn.style.display = 'none';
+            
+            minutesInput.value = 0;
+            secondsInput.value = 0;
+
+            // 재생 중인 소리 멈춤
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            warningSound.pause();
+            warningSound.currentTime = 0;
+        }
+
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+    </script>
+</body>
+</html>
